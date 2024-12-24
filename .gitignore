@@ -1,0 +1,70 @@
+# sbt-specific
+target/
+project/target/
+project/project/
+.history
+
+# sbt plugins
+*.lock
+.sbt/modules
+
+# Scala/Java compilation
+*.class
+*.log
+*.tmp
+*.out
+
+# Build tool cache
+.cache/
+.ensime_cache/
+.metals/
+.bloop/
+.mill/
+.parcel-cache/
+.worksheet/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+*.swp
+*.bak
+*.orig
+
+# OS-specific
+.DS_Store
+Thumbs.db
+Icon?
+
+# Dependency directories
+lib_managed/
+src_managed/
+project/project/
+project/target/
+dist/
+
+# Logs
+logs/
+*.log
+
+# Testing and coverage
+coverage/
+test-output/
+.cache-test/
+.aclock/
+.aclock-test/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Application files
+*.pid
+*.seed
+
+# Git-specific
+*.patch
+*.diff
+*.merge_file

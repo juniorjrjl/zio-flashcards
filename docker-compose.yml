@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:17.2
+    environment:
+      POSTGRES_USER: zio-flashcards
+      POSTGRES_PASSWORD: zio-flashcards
+      POSTGRES_DB: zio-flashcards
+    ports:
+      - "5432:5432"
+    networks:
+      - zio-flashcards-net
+networks:
+  zio-flashcards-net:
+    name: zio-flashcards-net
+    external: true
+volumes:
+  db:
