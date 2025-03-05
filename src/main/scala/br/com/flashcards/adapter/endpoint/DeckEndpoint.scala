@@ -3,16 +3,16 @@ package br.com.flashcards.adapter.endpoint
 import br.com.flashcards.adapter.endpoint.doc.DeckDocEndpoint
 import br.com.flashcards.adapter.endpoint.request.{
   DeckInsertRequest,
+  DeckInsertRequestValidator,
   DeckUpdateRequest
 }
-import br.com.flashcards.adapter.endpoint.response.error.DeckError
 import br.com.flashcards.adapter.endpoint.response.{
   DeckDetailsResponse,
   DeckInsertedResponse,
   DeckListResponse,
   DeckUpdatedResponse
 }
-import br.com.flashcards.core.exception.DeckException
+import br.com.flashcards.core.exception.DeckServiceError
 import br.com.flashcards.core.service.query.DeckRead
 import br.com.flashcards.core.service.{
   DeckWrite,
@@ -22,8 +22,6 @@ import br.com.flashcards.core.service.{
 import io.scalaland.chimney.dsl.*
 import sttp.tapir.ztapir.*
 import zio.*
-
-import java.time.OffsetDateTime
 
 case class DeckEndpoint(
     write: DeckWrite,
@@ -44,7 +42,7 @@ case class DeckEndpoint(
       read
         .list()
         .mapBoth(
-          _ => DeckError.GenericError("", "", 500, OffsetDateTime.now()),
+          mapErrorResponse(_),
           d => d.map(_.into[DeckListResponse].transform)
         )
 
@@ -57,7 +55,7 @@ case class DeckEndpoint(
       read
         .findById(id)
         .mapBoth(
-          _ => DeckError.GenericError("", "", 500, OffsetDateTime.now()),
+          mapErrorResponse(_),
           _.into[DeckDetailsResponse].transform
         )
 
@@ -67,12 +65,15 @@ case class DeckEndpoint(
     def insertLogic(
         request: DeckInsertRequest
     ) =
-      write
-        .insert(request.into[InsertDeckDomain].transform)
-        .mapBoth(
-          _ => DeckError.GenericError("", "", 500, OffsetDateTime.now()),
-          _.into[DeckInsertedResponse].transform
-        )
+      for {
+        validated <- checkConstraints(request, DeckInsertRequestValidator)
+        response <- write
+          .insert(request.into[InsertDeckDomain].transform)
+          .mapBoth(
+            mapErrorResponse(_),
+            _.into[DeckInsertedResponse].transform
+          )
+      } yield response
 
     DeckDocEndpoint.insertEndpoint.zServerLogic(p => insertLogic(p))
 
@@ -86,7 +87,7 @@ case class DeckEndpoint(
           request.into[UpdateDeckDomain].withFieldConst(_.id, id).transform
         )
         .mapBoth(
-          _ => DeckError.GenericError("", "", 500, OffsetDateTime.now()),
+          mapErrorResponse(_),
           _.into[DeckUpdatedResponse].transform
         )
 
@@ -98,7 +99,7 @@ case class DeckEndpoint(
     ) =
       write
         .delete(id)
-        .orElseFail(DeckError.GenericError("", "", 500, OffsetDateTime.now()))
+        .mapError(mapErrorResponse(_))
 
     DeckDocEndpoint.deleteEndpoint.zServerLogic(p => deleteLogic(p))
 
@@ -106,6 +107,6 @@ object DeckEndpoint:
 
   val layer: ZLayer[
     DeckWrite & DeckRead,
-    DeckException,
+    DeckServiceError,
     DeckEndpoint
   ] = ZLayer.fromFunction(DeckEndpoint(_, _))

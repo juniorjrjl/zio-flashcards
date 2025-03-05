@@ -1,19 +1,19 @@
 package br.com.flashcards.core.service
 
-import br.com.flashcards.core.exception.DeckException
+import br.com.flashcards.core.exception.DeckServiceError
 import zio.IO
 
 trait DeckWrite:
 
   def insert(
       domain: InsertDeckDomain
-  ): IO[DeckException, InsertedDeckDomain]
+  ): IO[DeckServiceError, InsertedDeckDomain]
 
   def update(
       domain: UpdateDeckDomain
-  ): IO[DeckException, UpdatedDeckDomain]
+  ): IO[DeckServiceError, UpdatedDeckDomain]
 
-  def delete(id: Long): IO[DeckException, Unit]
+  def delete(id: Long): IO[DeckServiceError, Unit]
 
 case class InsertDeckDomain(
     title: String,

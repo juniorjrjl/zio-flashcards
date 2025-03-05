@@ -7,9 +7,9 @@ CREATE TABLE CARDS(
     front VARCHAR(30) not null,
     back VARCHAR(255) not null,
     deck_id BIGSERIAL not null,
-    created_at timestamp not null,
-    updated_at timestamp not null,
-    CONSTRAINT FK_DECKS_CARDS FOREIGN KEY(deck_id) REFERENCES DECKS(id)
+    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FK_DECKS_CARDS FOREIGN KEY(deck_id) REFERENCES DECKS(id) ON DELETE CASCADE
 );
 
 --rollback DROP TABLE CARDS;

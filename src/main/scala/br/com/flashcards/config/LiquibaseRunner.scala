@@ -1,5 +1,6 @@
 package br.com.flashcards.config
 
+import br.com.flashcards.config.ConfigurationError.LiquibaseError
 import liquibase.Liquibase
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.DirectoryResourceAccessor
@@ -10,7 +11,7 @@ import java.sql.DriverManager
 
 case class LiquibaseRunner(private val config: LiquibaseConfig):
 
-  def runMigrations: ZIO[Any, Throwable, Unit] = ZIO.attempt {
+  def runMigrations: ZIO[Any, LiquibaseError, Unit] = ZIO.attempt {
     val liquibase = Liquibase(
       config.changeLogFile,
       DirectoryResourceAccessor(Paths.get("src/main/resources")),
@@ -23,6 +24,10 @@ case class LiquibaseRunner(private val config: LiquibaseConfig):
       )
     )
     liquibase.update()
+  }.mapError {
+    ex =>
+      val callstack = ex.getStackTrace.map(_.toString).toList
+      LiquibaseError(ex.getClass.getName, ex.getMessage, callstack)
   }
 
 object LiquibaseRunner:

@@ -1,48 +1,28 @@
 package br.com.flashcards.core.service.impl
 
-import br.com.flashcards.core.exception.DeckException
+import br.com.flashcards.core.exception.{DeckServiceError, GenericError}
+import br.com.flashcards.core.port.persistence.DeckWritePort
 import br.com.flashcards.core.service.query.DeckRead
-import br.com.flashcards.core.service.{
-  DeckWrite,
-  InsertDeckDomain,
-  InsertedCardDeckDomain,
-  InsertedDeckDomain,
-  UpdateDeckDomain,
-  UpdatedDeckDomain
-}
+import br.com.flashcards.core.service.*
+import zio.{IO, ZLayer}
 import io.scalaland.chimney.dsl.*
-import zio.{IO, ZIO, ZLayer}
 
-case class DeckService(query: DeckRead) extends DeckWrite:
+case class DeckService(writePort: DeckWritePort, query: DeckRead)
+    extends DeckWrite:
 
   override def insert(
       domain: InsertDeckDomain
-  ): IO[DeckException, InsertedDeckDomain] =
-    ZIO.succeed {
-      domain
-        .into[InsertedDeckDomain]
-        .withFieldConst(_.id, 1L)
-        .withFieldComputed(
-          _.cards,
-          _.cards
-            .map(
-              _.into[InsertedCardDeckDomain].withFieldConst(_.id, 1L).transform
-            )
-        )
-        .transform
-    }
+  ): IO[DeckServiceError, InsertedDeckDomain] =
+    writePort.insert(domain).mapError(_.into[GenericError].transform)
 
   override def update(
       domain: UpdateDeckDomain
-  ): IO[DeckException, UpdatedDeckDomain] = ZIO.succeed {
-    domain
-      .into[UpdatedDeckDomain]
-      .withFieldConst(_.cards, List.empty)
-      .transform
-  }
+  ): IO[DeckServiceError, UpdatedDeckDomain] =
+    writePort.update(domain).mapError(_.into[GenericError].transform)
 
-  override def delete(id: Long): IO[DeckException, Unit] = ZIO.unit
+  override def delete(id: Long): IO[DeckServiceError, Unit] =
+    writePort.delete(id).mapError(_.into[GenericError].transform)
 
 object DeckService:
-  val layer: ZLayer[DeckRead, DeckException, DeckWrite] =
-    ZLayer.fromFunction(DeckService(_))
+  val layer: ZLayer[DeckWritePort & DeckRead, DeckServiceError, DeckWrite] =
+    ZLayer.fromFunction(DeckService(_, _))

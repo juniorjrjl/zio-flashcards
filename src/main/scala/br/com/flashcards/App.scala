@@ -1,12 +1,8 @@
 package br.com.flashcards
 
 import br.com.flashcards.adapter.endpoint.DeckEndpoint
-import br.com.flashcards.config.{
-  AppConfig,
-  Configuration,
-  EndpointConfig,
-  LiquibaseRunner
-}
+import br.com.flashcards.adapter.outbound.persistence.repository.DeckRepository
+import br.com.flashcards.config.{AppConfig, Configuration, DataSource, EndpointConfig, LiquibaseRunner, QuillConfig}
 import br.com.flashcards.core.service.impl.DeckService
 import br.com.flashcards.core.service.query.impl.DeckQueryService
 import sttp.tapir.server.interceptor.cors.CORSConfig.AllowedOrigin
@@ -55,6 +51,9 @@ object App extends ZIOAppDefault:
         DeckService.layer,
         DeckQueryService.layer,
         LiquibaseRunner.layer,
+        DeckRepository.layer,
+        QuillConfig.layer,
+        DataSource.layer,
         serverLayer,
         Server.live
       )

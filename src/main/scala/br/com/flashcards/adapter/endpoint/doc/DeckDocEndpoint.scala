@@ -14,7 +14,7 @@ import br.com.flashcards.adapter.endpoint.response.{
   DeckListResponse,
   DeckUpdatedResponse
 }
-import br.com.flashcards.adapter.endpoint.response.error.DeckError
+import br.com.flashcards.adapter.endpoint.response.error.HttpError
 import sttp.model.StatusCode.{Created, InternalServerError, NoContent, NotFound}
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -31,7 +31,7 @@ object DeckDocEndpoint:
       deleteEndpoint
     )
 
-  val listEndpoint: Endpoint[Unit, Unit, DeckError.GenericError, List[
+  val listEndpoint: Endpoint[Unit, Unit, HttpError, List[
     DeckListResponse
   ], Any] =
     endpoint.get
@@ -40,12 +40,19 @@ object DeckDocEndpoint:
       .description("Getting decks by conditions")
       .out(jsonBody[List[DeckListResponse]].description("Deck list"))
       .errorOut(
-        statusCode(InternalServerError)
-          .and(jsonBody[DeckError.GenericError])
+        oneOf(
+          oneOfVariant[HttpError.GenericError](
+            statusCode(InternalServerError)
+              .and(jsonBody[HttpError.GenericError])
+          ),
+          oneOfVariant[HttpError.BadRequestError](
+            statusCode(NotFound).and(jsonBody[HttpError.BadRequestError])
+          )
+        )
       )
 
   val findByIdEndpoint
-      : Endpoint[Unit, Long, DeckError, DeckDetailsResponse, Any] =
+      : Endpoint[Unit, Long, HttpError, DeckDetailsResponse, Any] =
     endpoint.get
       .in("decks" / path[Long]("id"))
       .tag("Decks")
@@ -64,12 +71,12 @@ object DeckDocEndpoint:
       )
       .errorOut(
         oneOf(
-          oneOfVariant[DeckError.GenericError](
+          oneOfVariant[HttpError.GenericError](
             statusCode(InternalServerError)
-              .and(jsonBody[DeckError.GenericError])
+              .and(jsonBody[HttpError.GenericError])
           ),
-          oneOfVariant[DeckError.NotFoundError](
-            statusCode(NotFound).and(jsonBody[DeckError.NotFoundError])
+          oneOfVariant[HttpError.NotFoundError](
+            statusCode(NotFound).and(jsonBody[HttpError.NotFoundError])
           )
         )
       )
@@ -77,7 +84,7 @@ object DeckDocEndpoint:
   val insertEndpoint: Endpoint[
     Unit,
     DeckInsertRequest,
-    DeckError.GenericError,
+    HttpError,
     DeckInsertedResponse,
     Any
   ] =
@@ -110,14 +117,21 @@ object DeckDocEndpoint:
             )
       )
       .errorOut(
-        statusCode(InternalServerError)
-          .and(jsonBody[DeckError.GenericError])
+        oneOf(
+          oneOfVariant[HttpError.GenericError](
+            statusCode(InternalServerError)
+              .and(jsonBody[HttpError.GenericError])
+          ),
+          oneOfVariant[HttpError.BadRequestError](
+            statusCode(NotFound).and(jsonBody[HttpError.BadRequestError])
+          )
+        )
       )
 
   val updateEndpoint: Endpoint[
     Unit,
     (Long, DeckUpdateRequest),
-    DeckError,
+    HttpError,
     DeckUpdatedResponse,
     Any
   ] =
@@ -149,17 +163,17 @@ object DeckDocEndpoint:
       )
       .errorOut(
         oneOf(
-          oneOfVariant[DeckError.GenericError](
+          oneOfVariant[HttpError.GenericError](
             statusCode(InternalServerError)
-              .and(jsonBody[DeckError.GenericError])
+              .and(jsonBody[HttpError.GenericError])
           ),
-          oneOfVariant[DeckError.NotFoundError](
-            statusCode(NotFound).and(jsonBody[DeckError.NotFoundError])
+          oneOfVariant[HttpError.NotFoundError](
+            statusCode(NotFound).and(jsonBody[HttpError.NotFoundError])
           )
         )
       )
 
-  val deleteEndpoint: Endpoint[Unit, Long, DeckError, Unit, Any] =
+  val deleteEndpoint: Endpoint[Unit, Long, HttpError, Unit, Any] =
     endpoint.delete
       .in("decks" / path[Long]("id"))
       .tag("Decks")
@@ -167,12 +181,12 @@ object DeckDocEndpoint:
       .out(statusCode(NoContent))
       .errorOut(
         oneOf(
-          oneOfVariant[DeckError.GenericError](
+          oneOfVariant[HttpError.GenericError](
             statusCode(InternalServerError)
-              .and(jsonBody[DeckError.GenericError])
+              .and(jsonBody[HttpError.GenericError])
           ),
-          oneOfVariant[DeckError.NotFoundError](
-            statusCode(NotFound).and(jsonBody[DeckError.NotFoundError])
+          oneOfVariant[HttpError.NotFoundError](
+            statusCode(NotFound).and(jsonBody[HttpError.NotFoundError])
           )
         )
       )
