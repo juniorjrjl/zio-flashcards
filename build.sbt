@@ -1,14 +1,13 @@
-ThisBuild / scalaVersion := "3.3.4"
+ThisBuild / scalaVersion := "3.6.4"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "br.com.flashcards"
 ThisBuild / organizationName := "zio-flashcards"
 
-val tapirVersion = "1.11.16"
+val tapirVersion = "1.11.17"
 val zioVersion = "2.1.16"
 val zioConfigVersion = "4.0.3"
 val circeVersion = "0.14.10"
-val catsVersion = "2.12.0"
-val doobieVersion = "1.0.0-RC6"
+
 
 lazy val root = (project in file("."))
   .settings(
@@ -34,8 +33,10 @@ lazy val root = (project in file("."))
       "org.liquibase" % "liquibase-core" % "4.31.1",
       "org.postgresql" % "postgresql" % "42.7.5",
       "com.typesafe" % "config" % "1.4.3",
-      "io.github.gaelrenoux" %% "tranzactio" % "4.2.0",
-      "dev.zio" %% "zio-test" % zioVersion % Test
+      "dev.zio" %% "zio-test" % zioVersion % Test,
+      "dev.zio" %% "zio-test-sbt" % zioVersion % Test,
+      "dev.zio" %% "zio-test-magnolia" % zioVersion % Test,
+      "org.scalatestplus" %% "mockito-5-12" % "3.2.19.0" % Test
     ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )

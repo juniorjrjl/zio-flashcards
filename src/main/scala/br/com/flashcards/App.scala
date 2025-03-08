@@ -13,7 +13,7 @@ import zio.http.*
 
 object App extends ZIOAppDefault:
 
-  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] =
+  override def run: ZIO[Any & ZIOAppArgs & Scope, Any, Any] =
     val options: ZioHttpServerOptions[Any] =
       ZioHttpServerOptions.customiseInterceptors
         .corsInterceptor(
